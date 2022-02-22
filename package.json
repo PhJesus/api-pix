@@ -1,0 +1,27 @@
+{
+  "name": "api-pix",
+  "version": "1.0.0",
+  "description": "API para gerenciar pagamentos e consultas de pix",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lPedru/api-pix.git"
+  },
+  "author": "lPedru",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/lPedru/api-pix/issues"
+  },
+  "homepage": "https://github.com/lPedru/api-pix#readme",
+  "dependencies": {
+    "axios": "^0.26.0",
+    "dotenv": "^16.0.0",
+    "ejs": "^3.1.6",
+    "express": "^4.17.2",
+    "nodemon": "^2.0.15",
+    "request": "^2.88.2"
+  }
+}
