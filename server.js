@@ -1,9 +1,15 @@
-require('dotenv').config();
-const express = require('express');
+// Importação dos módulos que serão utilizados
+import express from 'express';
+import axios from 'axios';
+import qs from 'qs';
+import { dirname } from 'path';
+import { fileURLToPath } from 'url';
+import 'dotenv/config';
+
+// Variaveis importantes
 const app = express();
 const PORT = 3000;
-const axios = require('axios');
-const qs = require('qs');
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 // Config
 app.use(express.static('public'));
