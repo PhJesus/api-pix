@@ -40,7 +40,7 @@ function getToken() {
   });
   let config = {
     method: 'post',
-    url: `https://oauth.hm.bb.com.br/oauth/token?${process.env.GW_DEVKEY}`,
+    url: `https://oauth.hm.bb.com.br/oauth/token?gw-dev-app-key=${process.env.GW_DEVKEY}`,
     headers: { 
       'Authorization': `${process.env.AUTHORIZATION}`, 
       'Content-Type': 'application/x-www-form-urlencoded', 
@@ -82,7 +82,7 @@ app.get('/criarcob', (req, res) => {
     .then(doc => {
       let config = {
         method: 'put',
-        url: `https://api.hm.bb.com.br/pix/v1/cob/?${process.env.GW_DEVKEY}`,
+        url: `https://api.hm.bb.com.br/pix/v1/cob/?gw-dev-app-key=${process.env.GW_DEVKEY}`,
         headers: { 
           'Authorization': `${doc.data().token_type} ${doc.data().access_token}`, 
           'Content-Type': 'application/json'
@@ -111,7 +111,7 @@ app.get('/consultarcob', (req, res) => {
 
       var config = {
         method: 'get',
-        url: `https://api.hm.bb.com.br/pix/v1/cob/${txid}?${process.env.GW_DEVKEY}`,
+        url: `https://api.hm.bb.com.br/pix/v1/cob/${txid}?gw-dev-app-key=${process.env.GW_DEVKEY}`,
         headers: { 
           'Authorization': `${doc.data().token_type} ${doc.data().access_token}`, 
           'Content-Type': 'application/json'
@@ -140,7 +140,7 @@ app.get('/revisarcob', (req, res) => {
 
       var config = {
         method: 'get',
-        url: `https://api.hm.bb.com.br/pix/v1/cob/${txid}?${process.env.GW_DEVKEY}`,
+        url: `https://api.hm.bb.com.br/pix/v1/cob/${txid}?gw-dev-app-key=${process.env.GW_DEVKEY}`,
         headers: { 
           'Authorization': `${doc.data().token_type} ${doc.data().access_token}`, 
           'Content-Type': 'application/json'
