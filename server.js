@@ -8,6 +8,8 @@ import 'dotenv/config';
 import admin from 'firebase-admin';
 import { readFile } from 'fs/promises';
 
+// TODO: FAZER AS TABELAS E ESTILIZAR, ARRUMAR O ESTILO GERAL E DECIDIR SE VAI USAR O FIREBASE OU NÃO >:/
+
 const serviceAccount = JSON.parse(await readFile(new URL('./serviceAccountKey.json', import.meta.url)));
 
 admin.initializeApp({
@@ -25,8 +27,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 // Config
 app.use(express.static('public'));
-app.use('/css',express.static(__dirname + 'public/css'));
-app.use('/img',express.static(__dirname + 'public/img'));
+
 
 // Template engine
 app.set('view engine', 'ejs');
