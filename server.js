@@ -31,7 +31,7 @@ app.use('/img',express.static(__dirname + 'public/img'));
 // Template engine
 app.set('view engine', 'ejs');
 
-// DESCOBRIR COMO TIRAR DATA DAQUI
+// Funções
 
 function getToken() {
   let data = qs.stringify({
@@ -49,20 +49,23 @@ function getToken() {
     data : data
   };
 
-  axios(config)
-  .then((res) => res.data)
-  .then((token) => {
-    db.collection('teste').doc('token').set(token)
-  })
-  .catch((error) => res.statusCode(500).json({ err: err.message}));
+  return new Promise((resolve, rejects) => {
+    axios(config)
+    .then((res) => {
+      let token = res.data;
+      console.log('Processando request');
+      db.collection('teste').doc('token').set(token);
+      resolve(token);
+    },
+    (error) => {
+      rejects(error);
+    });    
+  });
 };
 
-app.get('', (req, res) => {
-  res.render('index');
-});
-
-// CRIAR COBRANÇA PIX
-app.get('/criarcob', (req, res) => {
+async function criarCobranca() {
+  let token = await getToken();
+  console.log('Token gerado com sucesso!')
   let data = JSON.stringify({
     "calendario": {
       "expiracao": "36000"
@@ -77,110 +80,145 @@ app.get('/criarcob', (req, res) => {
     "chave": "7f6844d0-de89-47e5-9ef7-e0a35a681615",
     "solicitacaoPagador": "Cobrança dos serviços prestados."
   });    
-  getToken()
-  db.collection('teste').doc('token').get()
-    .then(doc => {
-      let config = {
-        method: 'put',
-        url: `https://api.hm.bb.com.br/pix/v1/cob/?gw-dev-app-key=${process.env.GW_DEVKEY}`,
-        headers: { 
-          'Authorization': `${doc.data().token_type} ${doc.data().access_token}`, 
-          'Content-Type': 'application/json'
-        },
-        data : data
-      };
+  let config = {
+    method: 'put',
+    url: `https://api.hm.bb.com.br/pix/v1/cob/?gw-dev-app-key=${process.env.GW_DEVKEY}`,
+    headers: { 
+      'Authorization': `${token.token_type} ${token.access_token}`, 
+      'Content-Type': 'application/json'
+    },
+    data : data
+  }
+  axios(config)
+  .then(function (response) {
+    let dados = []
+    dados.push(response.data)
+    console.log(dados);
+  })
+  .catch(function (error) {
+    console.log(error);
+  });
+}
 
-      axios(config)
-      .then(function (response) {
-        let dados = []
-        dados.push(response.data)
-        console.log(dados);
-      })
-      .catch(function (error) {
-        console.log(error);
-      });
-    });
+async function consultarCobranca(txid) {
+  let token = await getToken();
+  console.log('Token gerado com sucesso!');
+  let config = {
+    method: 'get',
+    url: `https://api.hm.bb.com.br/pix/v1/cob/${txid}?gw-dev-app-key=${process.env.GW_DEVKEY}`,
+    headers: { 
+      'Authorization': `${token.token_type} ${token.access_token}`, 
+      'Content-Type': 'application/json'
+    }
+  };
+  
+  axios(config)
+  .then(function (response) {
+    console.log(response.data);
+  })
+  .catch(function (error) {
+    console.log(error);
+  });
+}
+
+async function revisarCobranca(txid) {
+  let token = await getToken();
+  let data = JSON.stringify({
+    "status": "REMOVIDA_PELO_USUARIO_RECEBEDOR"
+  });
+  var config = {
+    method: 'get',
+    url: `https://api.hm.bb.com.br/pix/v1/cob/${txid}?gw-dev-app-key=${process.env.GW_DEVKEY}`,
+    headers: { 
+      'Authorization': `${token.token_type} ${token.access_token}`, 
+      'Content-Type': 'application/json'
+    },
+    data: data
+  };
+  
+  axios(config)
+  .then(function (response) {
+    console.log(response.data);
+  })
+  .catch(function (error) {
+    console.log(error);
+  });
+}
+
+async function gerenciarCobrancas(dataInicial, dataFinal) {
+  let token = await getToken();
+  let config = {
+    method: 'get',
+    url: `https://api.hm.bb.com.br/pix/v1/?inicio=${dataInicial}&fim=${dataFinal}&paginacao.paginaAtual=1&gw-dev-app-key=${process.env.GW_DEVKEY}`,
+    headers: { 
+      'Authorization': `${token.token_type} ${token.access_token}`
+    }
+  };
+  
+  axios(config)
+  .then(function (response) {
+    console.log(response.data.pix);
+    console.log(response.data.parametros.paginacao.quantidadeTotalDeItens);
+  })
+  .catch(function (error) {
+    console.log(error);
+  });
+}
+
+app.get('', (req, res) => {
+  res.render('index');
+});
+
+// CRIAR COBRANÇA PIX
+app.get('/criarcob', (req, res) => {
+  criarCobranca();
 });
 
 // CONSULTAR UM PIX UNICO
 app.get('/consultarcob', (req, res) => {
-  getToken();
-  db.collection('teste').doc('token').get()
-    .then(doc => {
-      let txid = 'i4D1AaKBPjYq399f3TsvPhFfEQPWFx0mmSp';
-
-      var config = {
-        method: 'get',
-        url: `https://api.hm.bb.com.br/pix/v1/cob/${txid}?gw-dev-app-key=${process.env.GW_DEVKEY}`,
-        headers: { 
-          'Authorization': `${doc.data().token_type} ${doc.data().access_token}`, 
-          'Content-Type': 'application/json'
-        }
-      };
-      
-      axios(config)
-      .then(function (response) {
-        console.log(response.data);
-      })
-      .catch(function (error) {
-        console.log(error);
-      });
-    });
+  consultarCobranca('i4D1AaKBPjYq399f3TsvPhFfEQPWFx0mmSp');
 });
 
 // REVISAR COBRANÇAS
 app.get('/revisarcob', (req, res) => {
-  getToken();
-  var data = JSON.stringify({
-    "status": "REMOVIDA_PELO_USUARIO_RECEBEDOR"
-  });
-  db.collection('teste').doc('token').get()
-    .then(doc => {
-      let txid = 'i4D1AaKBPjYq399f3TsvPhFfEQPWFx0mmSp';
-
-      var config = {
-        method: 'get',
-        url: `https://api.hm.bb.com.br/pix/v1/cob/${txid}?gw-dev-app-key=${process.env.GW_DEVKEY}`,
-        headers: { 
-          'Authorization': `${doc.data().token_type} ${doc.data().access_token}`, 
-          'Content-Type': 'application/json'
-        },
-        data: data
-      };
-      
-      axios(config)
-      .then(function (response) {
-        console.log(response.data);
-      })
-      .catch(function (error) {
-        console.log(error);
-      });
-    });
+  let txid = 'i4D1AaKBPjYq399f3TsvPhFfEQPWFx0mmSp';
+  revisarCobranca(txid);
 });
 
 // GERENCIAR PIX RECEBIDOS
 app.get('/gerenciarcob', (req, res) => {
-  db.collection('teste').doc('token').get()
-    .then(doc => {
-      let config = {
-        method: 'get',
-        url: `https://api.hm.bb.com.br/pix/v1/?inicio=2022-02-23T00:00:00Z&fim=2022-02-24T23:59:59Z&paginacao.paginaAtual=1&${process.env.GW_DEVKEY}`,
-        headers: { 
-          'Authorization': `${doc.data().token_type} ${doc.data().access_token}`
-        }
-      };
-      
-      axios(config)
-      .then(function (response) {
-        console.log(response.data.pix);
-      })
-      .catch(function (error) {
-        console.log(error);
-      });
-    });
-  
+  let dataInicial = '2022-02-23T00:00:00Z';
+  let dataFinal = '2022-02-24T23:59:59Z';
+  gerenciarCobrancas(dataInicial, dataFinal)
 });
   
 // GERAR QR CODE
 
 app.listen(PORT, () => console.log(`Servidor iniciado em localhost:${PORT}`))
+
+
+// PEDAÇO DE CÓDIGO ANTIGO CASO PRECISE REUSAR
+
+/*
+  db.collection('teste').doc('token').get()
+    .then(doc => {
+      let txid = 'i4D1AaKBPjYq399f3TsvPhFfEQPWFx0mmSp';
+
+      var config = {
+        method: 'get',
+        url: `https://api.hm.bb.com.br/pix/v1/cob/${txid}?gw-dev-app-key=${process.env.GW_DEVKEY}`,
+        headers: { 
+          'Authorization': `${doc.data().token_type} ${doc.data().access_token}`, 
+          'Content-Type': 'application/json'
+        }
+      };
+      
+      axios(config)
+      .then(function (response) {
+        console.log(response.data);
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
+  });
+  */
