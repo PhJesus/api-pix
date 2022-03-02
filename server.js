@@ -2,38 +2,22 @@
 import express from 'express';
 import axios from 'axios';
 import qs from 'qs';
-import { dirname } from 'path';
-import { fileURLToPath } from 'url';
 import 'dotenv/config';
-import admin from 'firebase-admin';
-import { readFile } from 'fs/promises';
+import expressLayouts from 'express-ejs-layouts';
 
-// TODO: FAZER AS TABELAS E ESTILIZAR, ARRUMAR O ESTILO GERAL E DECIDIR SE VAI USAR O FIREBASE OU NÃO >:/
-
-const serviceAccount = JSON.parse(await readFile(new URL('./serviceAccountKey.json', import.meta.url)));
-
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount)
-});
-
-const db = admin.firestore();
-
-db.collection('teste').doc('token')
-
-// Variaveis importantes
+// Variaveis p/ rodar o servidor
 const app = express();
 const PORT = 3001;
-const __dirname = dirname(fileURLToPath(import.meta.url));
 
-// Config
+// Configuração da pasta Public
 app.use(express.static('public'));
 
-
 // Template engine
+app.use(expressLayouts);
+app.set('layout', '../views/layout.ejs');
 app.set('view engine', 'ejs');
 
 // Funções
-
 function getToken() {
   let data = qs.stringify({
     'grant_type': 'client_credentials',
@@ -53,10 +37,7 @@ function getToken() {
   return new Promise((resolve, rejects) => {
     axios(config)
     .then((res) => {
-      let token = res.data;
-      console.log('Processando request');
-      db.collection('teste').doc('token').set(token);
-      resolve(token);
+      resolve(res.data);
     },
     (error) => {
       rejects(error);
@@ -82,24 +63,26 @@ async function criarCobranca() {
     "solicitacaoPagador": "Cobrança dos serviços prestados."
   });    
   let config = {
-    method: 'put',
-    url: `https://api.hm.bb.com.br/pix/v1/cob/?gw-dev-app-key=${process.env.GW_DEVKEY}`,
+    method: 'PUT',
+    url: `https://api.hm.bb.com.br/pix/v1/cobqrcode/?gw-dev-app-key=${process.env.GW_DEVKEY}`,
     headers: { 
       'Authorization': `${token.token_type} ${token.access_token}`, 
       'Content-Type': 'application/json'
     },
     data : data
   }
-  axios(config)
-  .then(function (response) {
-    let dados = []
-    dados.push(response.data)
-    console.log(dados);
-  })
-  .catch(function (error) {
-    console.log(error);
+  return new Promise((resolve, rejects) => {
+    axios(config)
+    .then(function (response) {
+      let dados = [];
+      dados.push(response.data);
+      resolve(dados);
+    },
+    (error) => {
+      rejects(error);
+    });
   });
-}
+};
 
 async function consultarCobranca(txid) {
   let token = await getToken();
@@ -112,15 +95,18 @@ async function consultarCobranca(txid) {
       'Content-Type': 'application/json'
     }
   };
-  
-  axios(config)
-  .then(function (response) {
-    console.log(response.data);
-  })
-  .catch(function (error) {
-    console.log(error);
+  return new Promise((resolve, rejects) => {
+    axios(config)
+    .then(function (response) {
+      let dados = []
+      dados.push(response.data);
+      resolve(dados);
+    },
+    (error) => {
+      rejects(error);
+    });
   });
-}
+};
 
 async function revisarCobranca(txid) {
   let token = await getToken();
@@ -136,15 +122,18 @@ async function revisarCobranca(txid) {
     },
     data: data
   };
-  
-  axios(config)
-  .then(function (response) {
-    console.log(response.data);
-  })
-  .catch(function (error) {
-    console.log(error);
+  return new Promise((resolve, rejects) => {
+    axios(config)
+    .then(function (response) {
+      let dados = [];
+      dados.push(response.data);
+      resolve(dados);
+    },
+    (error) => {
+      rejects(error);
+    });
   });
-}
+};
 
 async function gerenciarCobrancas(dataInicial, dataFinal) {
   let token = await getToken();
@@ -156,70 +145,50 @@ async function gerenciarCobrancas(dataInicial, dataFinal) {
     }
   };
   
-  axios(config)
-  .then(function (response) {
-    console.log(response.data.pix);
-    console.log(response.data.parametros.paginacao.quantidadeTotalDeItens);
-  })
-  .catch(function (error) {
-    console.log(error);
+  return new Promise((resolve, rejects) => {
+    axios(config)
+    .then(function (response) {
+      resolve(response.data.pix);
+    },
+    (error) => {
+      rejects(error);
+    });
   });
-}
+};
 
+// HOME
 app.get('', (req, res) => {
-  res.render('index');
+  res.render('home');
 });
 
 // CRIAR COBRANÇA PIX
-app.get('/criarcob', (req, res) => {
-  criarCobranca();
+app.get('/criarcob', async (req, res) => {
+  let dados = await criarCobranca();
+  res.render('criarcob', { dados: dados });
 });
 
 // CONSULTAR UM PIX UNICO
-app.get('/consultarcob', (req, res) => {
-  consultarCobranca('i4D1AaKBPjYq399f3TsvPhFfEQPWFx0mmSp');
+app.get('/consultarcob', async (req, res) => {
+  let txid = 'i4D1AaKBPjYq399f3TsvPhFfEQPWFx0mmSp';
+  let dados = await consultarCobranca(txid);
+  res.render('consultarcob', { dados : dados });
 });
 
 // REVISAR COBRANÇAS
-app.get('/revisarcob', (req, res) => {
+app.get('/revisarcob', async (req, res) => {
   let txid = 'i4D1AaKBPjYq399f3TsvPhFfEQPWFx0mmSp';
-  revisarCobranca(txid);
+  let dados = await revisarCobranca(txid);
+  
+  res.render('revisarcob', { dados : dados });
 });
 
 // GERENCIAR PIX RECEBIDOS
-app.get('/gerenciarcob', (req, res) => {
+app.get('/gerenciarcob', async (req, res) => {
   let dataInicial = '2022-02-23T00:00:00Z';
   let dataFinal = '2022-02-24T23:59:59Z';
-  gerenciarCobrancas(dataInicial, dataFinal)
+  let dados = await gerenciarCobrancas(dataInicial, dataFinal);
+  console.log(dados);
+  res.render('gerenciarcob', { dados: dados }, );
 });
-  
-// GERAR QR CODE
 
 app.listen(PORT, () => console.log(`Servidor iniciado em localhost:${PORT}`))
-
-
-// PEDAÇO DE CÓDIGO ANTIGO CASO PRECISE REUSAR
-
-/*
-  db.collection('teste').doc('token').get()
-    .then(doc => {
-      let txid = 'i4D1AaKBPjYq399f3TsvPhFfEQPWFx0mmSp';
-
-      var config = {
-        method: 'get',
-        url: `https://api.hm.bb.com.br/pix/v1/cob/${txid}?gw-dev-app-key=${process.env.GW_DEVKEY}`,
-        headers: { 
-          'Authorization': `${doc.data().token_type} ${doc.data().access_token}`, 
-          'Content-Type': 'application/json'
-        }
-      };
-      
-      axios(config)
-      .then(function (response) {
-        console.log(response.data);
-      })
-      .catch(function (error) {
-        console.log(error);
-      });
-  });
-  */

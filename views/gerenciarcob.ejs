@@ -1,0 +1,31 @@
+<div class="borda"><div class="container">
+    <h1>Cobrança criada com sucesso</h1>
+        <table class="darkTable">
+            <thead>
+                <tr>
+                <th>Numeração</th>
+                <th>Nome</th>
+                <th>CPF</th>
+                <th>Valor</th>
+                <th>Horario</th>
+                <th>Informações</th>
+                <th>Txid</th>
+                <th>ID</th>
+                </tr>
+                </thead>
+            <tbody>
+                <% for(let i = 0; i < dados.length; i++) { %>
+                    <tr>
+                    <td><%= i+1%></td>
+                    <td><%= dados[i].pagador.nome %></td>
+                    <td><%= dados[i].pagador.cpf %></td>
+                    <td><%= dados[i].valor %></td>
+                    <td><%= dados[i].horario %></td>
+                    <td><%= dados[i].infoPagador %></td>
+                    <td><%= dados[i].txid %></td>
+                    <td><%= dados[i].endToEndId %></td>
+                    </tr>
+                <% } %>
+            </tbody>
+        </table>
+</div></div>

@@ -1,0 +1,47 @@
+<div class="borda"><div class="container">
+    <h1>Cobrança criada com sucesso</h1>
+        <table>
+            <tr>
+                <th>Nome</th>
+                <td><%= dados[0].devedor.nome %></td>
+            </tr>
+            <tr>
+                <th>CPF</th>
+                <td><%= dados[0].devedor.cpf %></td>
+            </tr>
+            <tr>
+                <th>Txid</th>
+                <td><%= dados[0].txid %></td>
+            </tr>
+            <tr>
+                <th>Valor</th>
+                <td><%= dados[0].valor.original %></td>
+            </tr>
+            <tr>
+                <th>Revisao</th>
+                <td><%= dados[0].revisao %></td>
+            </tr>
+            <tr>
+                <th>Solicitação</th>
+                <td><%= dados[0].solicitacaoPagador %></td>
+            </tr>
+            <tr>
+                <th>Chave</th>
+                <td><%= dados[0].chave %></td>
+            </tr>
+            <tr>
+                <th>Data de criação</th>
+                <td><%= dados[0].calendario.criacao %></td>
+            </tr>
+            <tr>
+                <th>Data de expiração</th>
+                <td><%= dados[0].calendario.expiracao %></td>
+            </tr>
+            <thead>
+                <tr>
+                <th colspan="9"><%= dados[0].status%></th>
+                </tr>
+            </thead>
+            </table>
+        </table>
+</div></div>
