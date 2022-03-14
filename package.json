@@ -2,7 +2,7 @@
   "name": "api-pix",
   "version": "1.0.0",
   "description": "API para gerenciar pagamentos e consultas de pix",
-  "main": "index.js",
+  "main": "server.js",
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -23,8 +23,8 @@
     "ejs": "^3.1.6",
     "express": "^4.17.2",
     "express-ejs-layouts": "^2.5.1",
-    "firebase-admin": "^10.0.2",
     "nodemon": "^2.0.15",
+    "qrcode": "^1.5.0",
     "request": "^2.88.2"
   }
 }
